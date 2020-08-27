@@ -1,5 +1,5 @@
 mcma_BK <-
-function(X,M,Y,sims=1000,boot=TRUE,boot.ci.type=c("bca","perc"),conf.level=0.95,p.adj.method=c("BH","bonferroni","BY"))
+function(T,M,Y,X,sims=1000,boot=TRUE,boot.ci.type=c("bca","perc"),conf.level=0.95,p.adj.method=c("BH","bonferroni","BY"))
 {
   n<-nrow(M)
   p<-ncol(M)
@@ -22,10 +22,10 @@ function(X,M,Y,sims=1000,boot=TRUE,boot.ci.type=c("bca","perc"),conf.level=0.95,
   IE.se<-rep(NA,p)
   for(j in 1:p)
   {
-    dat.tmp<-data.frame(X=X,M=M[,j],Y=Y)
+    dat.tmp<-data.frame(T=T,M=M[,j],Y=Y,X=X)
     
-    fit.m<-lm(M~X,data=dat.tmp)
-    fit.y<-lm(Y~X+M,data=dat.tmp)
+    fit.m<-lm(M~T+X,data=dat.tmp)
+    fit.y<-lm(Y~T+M+X,data=dat.tmp)
     
     alpha[j,1:4]<-c(coef(fit.m)[2],summary(fit.m)$coefficients[2,4],confint(fit.m,level=conf.level)[2,])
     gamma[j,1:4]<-c(coef(fit.y)[2],summary(fit.y)$coefficients[2,4],confint(fit.y,level=conf.level)[2,])
@@ -33,7 +33,7 @@ function(X,M,Y,sims=1000,boot=TRUE,boot.ci.type=c("bca","perc"),conf.level=0.95,
     
     if(boot)
     {
-      re.med<-mediate(fit.m,fit.y,treat="X",mediator="M",sims=sims,boot=boot,boot.ci.type=boot.ci.type[1],conf.level=conf.level)
+      re.med<-mediate(fit.m,fit.y,treat="T",mediator="M",covariates="X",sims=sims,boot=boot,boot.ci.type=boot.ci.type[1],conf.level=conf.level)
       
       IE[j,1:4]<-c(re.med$d1,re.med$d1.p,re.med$d1.ci)
       gamma[j,1:4]<-c(re.med$z1,re.med$z1.p,re.med$z1.ci) 
@@ -83,7 +83,7 @@ function(X,M,Y,sims=1000,boot=TRUE,boot.ci.type=c("bca","perc"),conf.level=0.95,
     IE.total[1,c(3,4)]<-c(IE.total[1,1]-IE.total.se*qnorm((1-conf.level)/2,lower.tail=FALSE),IE.total[1,1]+IE.total.se*qnorm((1-conf.level)/2,lower.tail=FALSE))
     
     # total effect model
-    fit<-lm(Y~X)
+    fit<-lm(Y~T)
     TE.se<-sqrt(summary(fit)$cov.unscaled[2,2]*(summary(fit)$sigma)^2)
     # direct effect
     DE[1,1]<-fit$coefficients[2]-IE.total[1,1]

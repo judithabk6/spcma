@@ -1,5 +1,5 @@
 SPCA <-
-function(X,M,adaptive=FALSE,var.per=0.8,n.pc=NULL,D=NULL,gamma=0,eps=1e-4,trace=TRUE,maxsteps=2000,lambda.tune=c("R2"),per.jump=0.7)
+function(T,M,X,adaptive=FALSE,var.per=0.8,n.pc=NULL,D=NULL,gamma=0,eps=1e-4,trace=TRUE,maxsteps=2000,lambda.tune=c("R2"),per.jump=0.7)
 {
   n<-nrow(M)
   p<-ncol(M)
@@ -10,8 +10,8 @@ function(X,M,adaptive=FALSE,var.per=0.8,n.pc=NULL,D=NULL,gamma=0,eps=1e-4,trace=
   }
   
   #==================================================
-  # PCA on M~X residuals
-  fit.m<-lm(M~X)
+  # PCA on M~T+X residuals
+  fit.m<-lm(M~T+X)
   E.m<-fit.m$residuals
   Sigma.m<-cov(E.m)
   svd.m<-svd(Sigma.m)
